@@ -72,18 +72,35 @@ if (isset($_POST['confirm'])) {
 	if (!empty($prenom) && !empty($nom) && !empty($email) && !empty($genre) && !empty($age) 
 		&& !empty($pseudo_ins) && !empty($mdp_ins)) {
 
-		$new_member = $ournetwork->prepare ('INSERT INTO membres (prenom, nom, email, genre, age, pseudo, mdp)	VALUES (:prenom, :nom, :email, :genre, :age, :pseudo, :mdp)');
+		if(strlen($pseudo_ins) > 3 && strlen($mdp_ins) > 3){
+			$check_pseudo = $ournetwork->prepare('SELECT pseudo FROM membres 
+											WHERE pseudo = :pseudo');
+			$check_pseudo->bindValue(':pseudo',$pseudo_ins,PDO::PARAM_STR);
+			$check_pseudo->execute();
 
-		$new_member->bindValue(':prenom', $prenom, PDO::PARAM_STR);
-		$new_member->bindValue(':nom', $nom, PDO::PARAM_STR);
-		$new_member->bindValue(':email', $email, PDO::PARAM_STR);
-		$new_member->bindValue(':genre', $genre, PDO::PARAM_STR);
-		$new_member->bindValue(':age', $age, PDO::PARAM_INT);
-		$new_member->bindValue(':pseudo', $pseudo_ins, PDO::PARAM_STR);
-		$new_member->bindValue(':mdp', $mdp_ins, PDO::PARAM_STR);
-		$new_member->execute();
+			if ($check_pseudo->rowCount()>0) {
+				echo '<p>Désolé, ce pseudo est déjà utilisé, veuillez en choisir un autre</p>';
+			} else {
 
-		echo $test;
+				$new_member = $ournetwork->prepare ('INSERT INTO membres (prenom, nom, email, genre, age, pseudo, mdp)	VALUES (:prenom, :nom, :email, :genre, :age, :pseudo, :mdp)');
+
+				$new_member->bindValue(':prenom', $prenom, PDO::PARAM_STR);
+				$new_member->bindValue(':nom', $nom, PDO::PARAM_STR);
+				$new_member->bindValue(':email', $email, PDO::PARAM_STR);
+				$new_member->bindValue(':genre', $genre, PDO::PARAM_STR);
+				$new_member->bindValue(':age', $age, PDO::PARAM_INT);
+				$new_member->bindValue(':pseudo', $pseudo_ins, PDO::PARAM_STR);
+				$new_member->bindValue(':mdp', $mdp_ins, PDO::PARAM_STR);
+				$new_member->execute();
+
+				echo $test;	
+				} 
+
+		} else {
+			$alert = 'Le pseudo et le mot de passe doivent faire au minimum 3 caractères';
+			echo $alert;
+		}
+		
 	}
 }
 ?>
