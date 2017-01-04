@@ -1,5 +1,11 @@
 <?php include_once 'inc/connexion_bd.inc.php';
 
+$pseudo = (!empty($_POST['pseudo'])) ? trim(strip_tags($_POST['pseudo'])) : '';
+
+if (isset($_POST['confirm'])) {
+	
+}
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -22,7 +28,7 @@
 					<input type="text" name="pseudo" id="pseudo">
 
 					<label for="mdp">Mot de passe</label>
-					<input type="password" name="mdp_to_confirm" id="mdp" >
+					<input type="password" name="mdp" id="mdp">
 
 					<input type="submit" name="confirm" value="Connexion"> 
 				</form>
