@@ -16,6 +16,8 @@ include 'inc/connexion_bd.inc.php'
 		</header>
 
 		<main>
+
+			<a href="login.php">Vous possédez déjà un compte? par ici!!</a>
 			
 			<!-- Partie formulaire d'inscription -->
 			<section>
@@ -45,8 +47,8 @@ include 'inc/connexion_bd.inc.php'
 					<label for="choose_mdp">Choisissez un mot de passe</label>
 					<input type="password" name="mdp" id="choose_mdp" ><br>
 
-<!-- 					<label for="choose_mdp2">Confirmez votre mot de passe</label>
-					<input type="password" name="new_mdp2" id="choose_mdp2" > -->
+					<label for="choose_mdp2">Confirmez votre mot de passe</label>
+					<input type="password" name="confirm_mdp" id="choose_mdp2" >
 
 					<input type="submit" name="confirm" value="Inscription">
 				</form>
@@ -56,7 +58,8 @@ include 'inc/connexion_bd.inc.php'
 </html>
 
 <?php
-// Inscription d'un membre dans la bdd
+
+// Registration of a new member
 $prenom = (!empty($_POST['firstname'])) ? trim(strip_tags($_POST['firstname'])) : '';
 $nom = (!empty($_POST['name'])) ? trim(strip_tags($_POST['name'])) : '';
 $email = (!empty($_POST['email'])) ? trim(strip_tags($_POST['email'])) : '';
@@ -64,43 +67,53 @@ $genre = (!empty($_POST['gender'])) ? trim(strip_tags($_POST['gender'])) : '';
 $age = (!empty($_POST['age'])) ? trim(strip_tags($_POST['age'])) : '';
 $pseudo_ins = (!empty($_POST['ins_pseudo'])) ? trim(strip_tags($_POST['ins_pseudo'])) : '';
 $mdp_ins = (!empty($_POST['mdp'])) ? trim(strip_tags($_POST['mdp'])) : '';
-
-$test = 'données enregistrées';
+$mdp_confirm = (!empty($_POST['confirm_mdp'])) ? trim(strip_tags($_POST['confirm_mdp'])) : '';
 
 if (isset($_POST['confirm'])) {
 
 	if (!empty($prenom) && !empty($nom) && !empty($email) && !empty($genre) && !empty($age) 
 		&& !empty($pseudo_ins) && !empty($mdp_ins)) {
 
-		if(strlen($pseudo_ins) > 3 && strlen($mdp_ins) > 3){
-			$check_pseudo = $ournetwork->prepare('SELECT pseudo FROM membres 
-											WHERE pseudo = :pseudo');
-			$check_pseudo->bindValue(':pseudo',$pseudo_ins,PDO::PARAM_STR);
-			$check_pseudo->execute();
+		if ($mdp_ins === $mdp_confirm) {
 
-			if ($check_pseudo->rowCount()>0) {
-				echo '<p>Désolé, ce pseudo est déjà utilisé, veuillez en choisir un autre</p>';
+			// Verification of the pseudo and password's length
+			if(strlen($pseudo_ins) > 3 && strlen($mdp_ins) > 3) {
+
+				$check_pseudo = $ournetwork->prepare('SELECT pseudo FROM membres 
+														WHERE pseudo = :pseudo');
+
+				$check_pseudo->bindValue(':pseudo',$pseudo_ins,PDO::PARAM_STR);
+				$check_pseudo->execute();
+
+				// check if there's already this pseudo in database
+				if ($check_pseudo->rowCount()>0) {
+					echo '<p>Désolé, ce pseudo est déjà utilisé, veuillez en choisir un autre</p>';
+				} else {
+
+					$new_member = $ournetwork->prepare ('INSERT INTO membres (prenom, nom, email, genre, age, pseudo, mdp)	VALUES (:prenom, :nom, :email, :genre, :age, :pseudo, :mdp)');
+
+					// User's password encryption
+					$secure_mdp = password_hash($mdp_ins, PASSWORD_BCRYPT);
+
+					$new_member->bindValue(':prenom', $prenom, PDO::PARAM_STR);
+					$new_member->bindValue(':nom', $nom, PDO::PARAM_STR);
+					$new_member->bindValue(':email', $email, PDO::PARAM_STR);
+					$new_member->bindValue(':genre', $genre, PDO::PARAM_STR);
+					$new_member->bindValue(':age', $age, PDO::PARAM_INT);
+					$new_member->bindValue(':pseudo', $pseudo_ins, PDO::PARAM_STR);
+					$new_member->bindValue(':mdp', $secure_mdp, PDO::PARAM_STR);
+					$new_member->execute();
+
+					echo 'donnés enregistrées';
+					} 
+
 			} else {
-
-				$new_member = $ournetwork->prepare ('INSERT INTO membres (prenom, nom, email, genre, age, pseudo, mdp)	VALUES (:prenom, :nom, :email, :genre, :age, :pseudo, :mdp)');
-
-				$new_member->bindValue(':prenom', $prenom, PDO::PARAM_STR);
-				$new_member->bindValue(':nom', $nom, PDO::PARAM_STR);
-				$new_member->bindValue(':email', $email, PDO::PARAM_STR);
-				$new_member->bindValue(':genre', $genre, PDO::PARAM_STR);
-				$new_member->bindValue(':age', $age, PDO::PARAM_INT);
-				$new_member->bindValue(':pseudo', $pseudo_ins, PDO::PARAM_STR);
-				$new_member->bindValue(':mdp', $mdp_ins, PDO::PARAM_STR);
-				$new_member->execute();
-
-				echo $test;	
-				} 
+				echo 'Le pseudo et le mot de passe doivent avoir au minimum 3 caractères';
+			}
 
 		} else {
-			$alert = 'Le pseudo et le mot de passe doivent faire au minimum 3 caractères';
-			echo $alert;
-		}
-		
+			echo '<p>Le mot de passe et le mot de passe de confirmation ne correspondent pas</p>';
+		}		
 	}
 }
 ?>
