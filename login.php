@@ -17,14 +17,16 @@ if (isset($_POST['connexion'])) {
 
 		$user_connection = $check_connection->fetch(PDO::FETCH_ASSOC);
 
-		 if (password_verify($password, $user_connection['mdp'])) {
+		if (password_verify($password, $user_connection['mdp'])) {
 		 	session_start();
 			$_SESSION['pseudo'] = $user_connection['pseudo'];
+	
 			header('location:index.php');
 
-		 }
+		} else {
+			echo '<p>Attention, vous avez du faire une erreur sur le pseudo ou le mot de passe</p>';
+		}
 	}
-	
 }
 
 // if (!$check_connection) {
@@ -48,6 +50,8 @@ if (isset($_POST['connexion'])) {
 
 		<main>
 			<section>
+			<a href="signup.php">Créer un compte</a>
+
 				<form action="login.php" method="post">
 
 					<label for="pseudo">Pseudo</label>

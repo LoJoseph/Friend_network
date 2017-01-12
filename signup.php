@@ -104,7 +104,7 @@ if (isset($_POST['confirm'])) {
 					$new_member->bindValue(':mdp', $secure_mdp, PDO::PARAM_STR);
 					$new_member->execute();
 
-					echo 'donnés enregistrées';
+					header('location:reg_confirmation.php');
 					} 
 
 			} else {
